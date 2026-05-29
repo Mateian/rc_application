@@ -371,11 +371,9 @@ class _ControllerPageState extends State<ControllerPage> {
     final match = regex.firstMatch(data);
 
     if(match != null) {
-      print("match: ${match.group(1)}");
       return double.tryParse(match.group(1)!);
     }
 
-    print("no match");
 
     return null;
   }
@@ -402,9 +400,6 @@ class _ControllerPageState extends State<ControllerPage> {
 
     const double sensitivityThreshold = 8.0;
 
-      print("Current: $data");
-  print("Baseline: $baseline");
-  print("Difference: ${baseline - data}");
     if(data < baseline - sensitivityThreshold) {
       if(!fishDetected) {
         fishDetected = true;
