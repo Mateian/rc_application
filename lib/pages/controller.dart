@@ -329,7 +329,7 @@ class _ControllerPageState extends State<ControllerPage> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text("SERVER LOGS", style: TextStyle(color: Colors.lightGreenAccent, fontWeight: FontWeight.bold, fontSize: 18)),
+                            Text("LOGS", style: TextStyle(color: Colors.lightGreenAccent, fontWeight: FontWeight.bold, fontSize: 18)),
                             IconButton(
                               icon: Icon(Icons.close, color: Colors.white, size: 30),
                               onPressed: () => setState(() => showLogs = false),
@@ -340,6 +340,7 @@ class _ControllerPageState extends State<ControllerPage> {
 
                       Expanded(
                         child: Container(
+                          width: double.infinity,
                           margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           padding: EdgeInsets.all(10),
                           decoration: BoxDecoration(

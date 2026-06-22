@@ -11,6 +11,8 @@ void main() {
   runApp(const MyApp());
 }
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -18,13 +20,27 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => MyAppState(),
-      child:
-        MaterialApp(
-          title: 'Controller RC Boat',
-          debugShowCheckedModeBanner: false,
-          theme: ThemeData(fontFamily: 'Arial', colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurpleAccent,)),
-          home: ConnectPage(),
-        ),
+      child: Consumer<MyAppState>(
+        builder: (context, appState, child) {
+          if(!appState.isConnected) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              navigatorKey.currentState?.pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => ConnectPage()),
+                (route) => false,
+              );
+            });
+          }
+
+          return MaterialApp(
+            navigatorKey: navigatorKey,
+            title: 'Controller RC Boat',
+            debugShowCheckedModeBanner: false,
+            theme: ThemeData(fontFamily: 'Arial', colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurpleAccent,)),
+            home: ConnectPage(),
+          );
+        }
+      )
+        
     );
   }
 }
@@ -33,6 +49,8 @@ class MyAppState extends ChangeNotifier {
   late Socket conn;
   Timer? _sendTimer;
   StreamController<String> _streamController = StreamController<String>.broadcast();
+  bool _isConnected = false;
+  bool get isConnected => _isConnected;
 
   String responseMessage = '';
   String logHistory = 'Fara Log-uri...';
@@ -47,6 +65,8 @@ class MyAppState extends ChangeNotifier {
     _streamController = StreamController<String>.broadcast();
     try {
       conn = await Socket.connect(ip, port);
+      _isConnected = true;
+      notifyListeners();
 
       conn.listen((List<int> event) {
         String rawResponse = utf8.decode(event);
@@ -65,6 +85,17 @@ class MyAppState extends ChangeNotifier {
 
         _streamController.add(responseMessage);
         notifyListeners();
+      },
+      onDone: () {
+        _isConnected = false;
+        _streamController.close();
+        notifyListeners();
+      },
+      onError: (error) {
+        _isConnected = false;
+        responseMessage = 'Conexiune pierduta: $error';
+        _streamController.close();
+        notifyListeners();
       });
 
       notifyListeners();
@@ -76,6 +107,7 @@ class MyAppState extends ChangeNotifier {
   }
 
   void closeConnection()  {
+    _isConnected = false;
     conn.write('q');
     conn.close();
     _streamController.close();
